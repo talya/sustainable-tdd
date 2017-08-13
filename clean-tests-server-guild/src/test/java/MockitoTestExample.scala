@@ -50,8 +50,10 @@ class JMockTestExample extends SpecificationWithJUnit with JMock {
 class MetaSiteTpaCollector(eventGenerator: EventGenerator) {
 
   def collectProvisionedTpas(tpas: Seq[TpaInstance]) = {
-    tpas.foreach(tpa => eventGenerator.generateProvisionedEvent(tpa.id))
-    tpas.collect { case tpa if tpa.state == TpaInstance.PROVISIONED => tpa.id }
+    tpas.collect { case tpa if tpa.state == TpaInstance.PROVISIONED => {
+      eventGenerator.generateProvisionedEvent(tpa.id)
+      tpa.id
+    }}
   }
 }
 
