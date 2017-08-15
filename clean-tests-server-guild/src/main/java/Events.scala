@@ -11,7 +11,7 @@ trait EventsStateDao {
   def addAll(ids: Set[UUID]): Unit = ???
 }
 
-class TheEventGenerator(eventNotifier: EventNotifier, eventsStateDao: EventsStateDao) extends EventGenerator {
+class StatefulEventGenerator(eventNotifier: EventNotifier, eventsStateDao: EventsStateDao) extends EventGenerator {
   override def generateProvisionedEvents(ids: Set[UUID]): Unit = {
     Try {
       ids.foreach(id => eventNotifier.notify(TpaProvisionedEvent(id)))
