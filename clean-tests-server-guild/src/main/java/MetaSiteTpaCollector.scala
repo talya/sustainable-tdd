@@ -4,7 +4,7 @@ class MetaSiteTpaCollector(eventGenerator: EventGenerator) {
 
   def collectProvisionedTpas(tpas: Seq[TpaInstance]) = {
     tpas.collect { case tpa if tpa.state == TpaInstance.PROVISIONED => {
-      eventGenerator.generateProvisionedEvent(tpa.id)
+      eventGenerator.generateProvisionedEvents(Set(tpa.id))
       tpa.id
     }}
   }

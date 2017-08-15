@@ -10,7 +10,7 @@ class MetaSiteTpaCollectorTest extends SpecificationWithJUnit with JMock {
 
     "return only provisioned tpa and generate events for them" in new Context {
       checking {
-        oneOf(eventGenerator).generateProvisionedEvent(provisionedTpa.id)
+        oneOf(eventGenerator).generateProvisionedEvents(Set(provisionedTpa.id))
       }
       metaSiteTpaCollector.collectProvisionedTpas(Seq(provisionedTpa, templateTpa)) must contain(exactly(provisionedTpa.id))
     }
