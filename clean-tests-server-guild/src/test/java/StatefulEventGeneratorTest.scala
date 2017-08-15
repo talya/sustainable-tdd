@@ -20,7 +20,17 @@ class StatefulEventGeneratorTest extends SpecificationWithJUnit with JMock {
     "save failed events" in new Context {
       checking {
         allowing(eventNotifier).notify(TpaProvisionedEvent(provisionedTpa1.id)) willThrow new RuntimeException("no service for you")
-        oneOf(eventsStateDao).addAll(Set(provisionedTpa1.id))
+        oneOf(eventsStateDao).addEventsWaitingForAck(Set(provisionedTpa1.id))
+      }
+
+      eventGenerator.generateProvisionedEvents(Set(provisionedTpa1.id))
+    }
+
+    "remove successfully notified events" in new Context {
+      checking {
+        allowing(eventsStateDao).addEventsWaitingForAck(Set(provisionedTpa1.id))
+        allowing(eventNotifier).notify(TpaProvisionedEvent(provisionedTpa1.id))
+        oneOf(eventsStateDao).markSuccessful(provisionedTpa1.id)
       }
 
       eventGenerator.generateProvisionedEvents(Set(provisionedTpa1.id))
