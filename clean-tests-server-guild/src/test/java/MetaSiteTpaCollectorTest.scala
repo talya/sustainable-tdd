@@ -10,14 +10,14 @@ class MetaSiteTpaCollectorTest extends SpecificationWithJUnit with JMock {
 
     "return only provisioned tpa and generate events for them" in new Context {
       checking {
-        oneOf(eventGenerator).generateProvisionedEvents(Set(provisionedTpa.id))
+        oneOf(eventGenerator).handleEventsOf(Set(provisionedTpa.id))
       }
       metaSiteTpaCollector.collectProvisionedTpas(Seq(provisionedTpa, templateTpa)) must contain(exactly(provisionedTpa.id))
     }
   }
 
   trait Context extends Scope {
-    val eventGenerator = mock[EventGenerator]
+    val eventGenerator = mock[ProvisioningHandler]
     val metaSiteTpaCollector = new MetaSiteTpaCollector(eventGenerator)
 
     val provisionedTpa = TpaInstance(id = UUID.randomUUID, TpaInstance.PROVISIONED)

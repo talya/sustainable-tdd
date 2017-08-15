@@ -1,10 +1,10 @@
 import java.util.UUID
 
-class MetaSiteTpaCollector(eventGenerator: EventGenerator) {
+class MetaSiteTpaCollector(provisioningHandler: ProvisioningHandler) {
 
   def collectProvisionedTpas(tpas: Seq[TpaInstance]) = {
     tpas.collect { case tpa if tpa.state == TpaInstance.PROVISIONED => {
-      eventGenerator.generateProvisionedEvents(Set(tpa.id))
+      provisioningHandler.handleEventsOf(Set(tpa.id))
       tpa.id
     }}
   }

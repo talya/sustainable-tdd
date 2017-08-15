@@ -4,54 +4,54 @@ import com.wixpress.common.specs2.JMock
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
 
-class StatefulEventGeneratorTest extends SpecificationWithJUnit with JMock {
+class StatefulProvisioningHandlerTest extends SpecificationWithJUnit with JMock {
   "StatefulEventGenerator" should {
 
     "notify of provisioned events" in new Context {
-      ignoring(eventsStateDao)
+      ignoring(unacknowledgedEventsDao)
       checking {
         oneOf(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId1))
         oneOf(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId2))
       }
 
-      eventGenerator.generateProvisionedEvents(Set(provisionedTpaId1, provisionedTpaId2))
+      provisioningHandler.handleEventsOf(Set(provisionedTpaId1, provisionedTpaId2))
     }
 
     "save failed events" in new Context {
       checking {
         allowing(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId1)) willThrow new RuntimeException("no service for you")
-        oneOf(eventsStateDao).addEventsWaitingForAck(Set(provisionedTpaId1))
+        oneOf(unacknowledgedEventsDao).addEventsWaitingForAck(Set(provisionedTpaId1))
       }
 
-      eventGenerator.generateProvisionedEvents(Set(provisionedTpaId1))
+      provisioningHandler.handleEventsOf(Set(provisionedTpaId1))
     }
 
     "mark successfully notified events" in new Context {
       checking {
-        allowing(eventsStateDao).addEventsWaitingForAck(Set(provisionedTpaId1))
+        allowing(unacknowledgedEventsDao).addEventsWaitingForAck(Set(provisionedTpaId1))
         allowing(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId1))
-        oneOf(eventsStateDao).markSuccessful(provisionedTpaId1)
+        oneOf(unacknowledgedEventsDao).markAcknowledged(provisionedTpaId1)
       }
 
-      eventGenerator.generateProvisionedEvents(Set(provisionedTpaId1))
+      provisioningHandler.handleEventsOf(Set(provisionedTpaId1))
     }
 
     "notify of previously failed events before continuing" in new Context {
-      val eventIdNotAcked = UUID.randomUUID()
+      val notAckedEventId = UUID.randomUUID()
       checking {
-        allowing(eventsStateDao).eventsNotAcked() willReturn(Set(eventIdNotAcked))
-        oneOf(eventNotifier).notify(TpaProvisionedEvent(eventIdNotAcked))
+        allowing(unacknowledgedEventsDao).getEventsWaitingForAck() willReturn(Set(notAckedEventId))
+        oneOf(eventNotifier).notify(TpaProvisionedEvent(notAckedEventId))
         oneOf(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId1))
       }
 
-      eventGenerator.generateProvisionedEvents(Set(provisionedTpaId1))
+      provisioningHandler.handleEventsOf(Set(provisionedTpaId1))
     }
   }
 
   trait Context extends Scope {
     val eventNotifier = mock[EventNotifier]
-    val eventsStateDao = mock[EventsStateDao]
-    val eventGenerator = new StatefulEventGenerator(eventNotifier, eventsStateDao)
+    val unacknowledgedEventsDao = mock[UnacknowledgedEventsDao]
+    val provisioningHandler = new StatefulProvisioningHandler(eventNotifier, unacknowledgedEventsDao)
     val provisionedTpaId1 = UUID.randomUUID
     val provisionedTpaId2 = UUID.randomUUID
   }
