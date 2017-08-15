@@ -35,6 +35,17 @@ class StatefulEventGeneratorTest extends SpecificationWithJUnit with JMock {
 
       eventGenerator.generateProvisionedEvents(Set(provisionedTpaId1))
     }
+
+    "notify of previously failed events before continuing" in new Context {
+      val eventIdNotAcked = UUID.randomUUID()
+      checking {
+        allowing(eventsStateDao).eventsNotAcked() willReturn(Set(eventIdNotAcked))
+        oneOf(eventNotifier).notify(TpaProvisionedEvent(eventIdNotAcked))
+        oneOf(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId1))
+      }
+
+      eventGenerator.generateProvisionedEvents(Set(provisionedTpaId1))
+    }
   }
 
   trait Context extends Scope {
