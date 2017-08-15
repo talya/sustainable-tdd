@@ -4,8 +4,9 @@ trait EventGenerator {
   def generateProvisionedEvents(ids: Set[UUID]): Unit
 }
 
-class TheEventGenerator extends EventGenerator {
-  override def generateProvisionedEvents(ids: Set[UUID]): Unit = ???
+class TheEventGenerator(eventNotifier: EventNotifier) extends EventGenerator {
+  override def generateProvisionedEvents(ids: Set[UUID]): Unit =
+    ids.foreach(id => eventNotifier.notify(TpaProvisionedEvent(id)))
 }
 
 

@@ -18,7 +18,7 @@ class EventGeneratorTest extends SpecificationWithJUnit with JMock {
 
   trait Context extends Scope {
     val eventNotifier = mock[EventNotifier]
-    val eventGenerator = new TheEventGenerator()
+    val eventGenerator = new TheEventGenerator(eventNotifier)
     val provisionedTpa1 = TpaInstance(id = UUID.randomUUID, TpaInstance.PROVISIONED)
     val provisionedTpa2 = TpaInstance(id = UUID.randomUUID, TpaInstance.PROVISIONED)
   }
