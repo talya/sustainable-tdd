@@ -1,5 +1,7 @@
 import java.util.UUID
 
+import scala.util.Try
+
 trait EventGenerator {
   def generateProvisionedEvents(ids: Set[UUID]): Unit
 }
@@ -10,8 +12,12 @@ trait EventsStateDao {
 }
 
 class TheEventGenerator(eventNotifier: EventNotifier, eventsStateDao: EventsStateDao) extends EventGenerator {
-  override def generateProvisionedEvents(ids: Set[UUID]): Unit =
-    ids.foreach(id => eventNotifier.notify(TpaProvisionedEvent(id)))
+  override def generateProvisionedEvents(ids: Set[UUID]): Unit = {
+    Try {
+      ids.foreach(id => eventNotifier.notify(TpaProvisionedEvent(id)))
+    }
+    eventsStateDao.addAll(ids)
+  }
 }
 
 

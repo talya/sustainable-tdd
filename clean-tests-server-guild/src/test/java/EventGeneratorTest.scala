@@ -8,6 +8,7 @@ class EventGeneratorTest extends SpecificationWithJUnit with JMock {
   "EventGenerator" should {
 
     "notify of provisioned events" in new Context {
+      ignoring(eventsStateDao)
       checking {
         oneOf(eventNotifier).notify(TpaProvisionedEvent(provisionedTpa1.id))
         oneOf(eventNotifier).notify(TpaProvisionedEvent(provisionedTpa2.id))
