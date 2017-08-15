@@ -10,30 +10,30 @@ class StatefulEventGeneratorTest extends SpecificationWithJUnit with JMock {
     "notify of provisioned events" in new Context {
       ignoring(eventsStateDao)
       checking {
-        oneOf(eventNotifier).notify(TpaProvisionedEvent(provisionedTpa1.id))
-        oneOf(eventNotifier).notify(TpaProvisionedEvent(provisionedTpa2.id))
+        oneOf(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId1))
+        oneOf(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId2))
       }
 
-      eventGenerator.generateProvisionedEvents(Set(provisionedTpa1.id, provisionedTpa2.id))
+      eventGenerator.generateProvisionedEvents(Set(provisionedTpaId1, provisionedTpaId2))
     }
 
     "save failed events" in new Context {
       checking {
-        allowing(eventNotifier).notify(TpaProvisionedEvent(provisionedTpa1.id)) willThrow new RuntimeException("no service for you")
-        oneOf(eventsStateDao).addEventsWaitingForAck(Set(provisionedTpa1.id))
+        allowing(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId1)) willThrow new RuntimeException("no service for you")
+        oneOf(eventsStateDao).addEventsWaitingForAck(Set(provisionedTpaId1))
       }
 
-      eventGenerator.generateProvisionedEvents(Set(provisionedTpa1.id))
+      eventGenerator.generateProvisionedEvents(Set(provisionedTpaId1))
     }
 
-    "remove successfully notified events" in new Context {
+    "mark successfully notified events" in new Context {
       checking {
-        allowing(eventsStateDao).addEventsWaitingForAck(Set(provisionedTpa1.id))
-        allowing(eventNotifier).notify(TpaProvisionedEvent(provisionedTpa1.id))
-        oneOf(eventsStateDao).markSuccessful(provisionedTpa1.id)
+        allowing(eventsStateDao).addEventsWaitingForAck(Set(provisionedTpaId1))
+        allowing(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId1))
+        oneOf(eventsStateDao).markSuccessful(provisionedTpaId1)
       }
 
-      eventGenerator.generateProvisionedEvents(Set(provisionedTpa1.id))
+      eventGenerator.generateProvisionedEvents(Set(provisionedTpaId1))
     }
   }
 
@@ -41,7 +41,7 @@ class StatefulEventGeneratorTest extends SpecificationWithJUnit with JMock {
     val eventNotifier = mock[EventNotifier]
     val eventsStateDao = mock[EventsStateDao]
     val eventGenerator = new StatefulEventGenerator(eventNotifier, eventsStateDao)
-    val provisionedTpa1 = TpaInstance(id = UUID.randomUUID, TpaInstance.PROVISIONED)
-    val provisionedTpa2 = TpaInstance(id = UUID.randomUUID, TpaInstance.PROVISIONED)
+    val provisionedTpaId1 = UUID.randomUUID
+    val provisionedTpaId2 = UUID.randomUUID
   }
 }
