@@ -56,13 +56,16 @@ class StatefulProvisioningHandlerTest extends SpecificationWithJUnit with JMock 
   trait Context extends Scope {
     val eventNotifier = mock[EventNotifier]
     val unacknowledgedEventsDao = new InMemoryUnacknowledgedEventsDao
-    val provisioningHandler = new StatefulProvisioningHandler(eventNotifier, unacknowledgedEventsDao, mock[BiEventGenerator])
+    val biEventGenerator: BiEventGenerator = mock[BiEventGenerator]
+    val provisioningHandler = new StatefulProvisioningHandler(eventNotifier, unacknowledgedEventsDao, biEventGenerator)
     val tpaId = UUID.randomUUID
     val tpaId2 = UUID.randomUUID
 
     def givenUnacknowledgedEvent(notAckedEventId: UUID) = {
       unacknowledgedEventsDao.addEventsWaitingForAck(Set(notAckedEventId))
     }
+
+    ignoring(biEventGenerator)
   }
 }
 
