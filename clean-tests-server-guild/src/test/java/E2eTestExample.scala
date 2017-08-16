@@ -16,10 +16,7 @@ class E2eTestExample extends SpecificationWithJUnit with Mockito {
       SystemDriver.collectProvisionedTpas(tpaId) must contain(exactly(tpaId))
 
       there was one(TestEnv.overTheNetworkEventNotifier).notify(TpaProvisionedEvent(tpaId))
-      there was one(TestEnv.biEventGenerator).generateProvisionEvent(tpaId, wasSuccessful = false) //should be failing - but it's green!
-      // the validation should be on 'wasSuccessful=true' - this was an honest mistake
-      // the test passes because there indeed was one call with wasSuccessful=false
-      // also stays green with true!
+      TestEnv.biEventGenerator.successfulEventsCounter must_===(1)
     }
   }
 
@@ -37,7 +34,7 @@ class E2eTestExample extends SpecificationWithJUnit with Mockito {
 }
 
 object TestEnv extends Mockito {
-  val biEventGenerator = mock[BiEventGenerator]
+  val biEventGenerator = new InMemoryBiGenerator
   val overTheNetworkEventNotifier = mock[EventNotifier] //would be an rpc proxy in an actual e2e
   val metaSiteTpasCollector = new MetaSiteTpaCollector(new StatefulProvisioningHandler(overTheNetworkEventNotifier, new MysqlUnacknowledgedEventsDao, biEventGenerator))
 }
@@ -48,3 +45,9 @@ object SystemDriver {
 
 //using this simple impl just for simplicity - we dont want to write real db code for now
 class MysqlUnacknowledgedEventsDao extends InMemoryUnacknowledgedEventsDao
+
+class InMemoryBiGenerator extends BiEventGenerator {
+  var successfulEventsCounter = 0
+
+  override def generateProvisionEvent(tpaId: UUID, wasSuccessful: Boolean): Unit = if (wasSuccessful) successfulEventsCounter+=1
+}
