@@ -16,7 +16,7 @@ class E2eTestExample extends SpecificationWithJUnit with Mockito {
       SystemDriver.collectProvisionedTpas(tpaId) must contain(exactly(tpaId))
 
       there was one(TestEnv.overTheNetworkEventNotifier).notify(TpaProvisionedEvent(tpaId))
-      TestEnv.biEventGenerator.successfulEventsCounter must_===(1)
+      TestEnv.biEventGenerator.successfulEventsCounterIs(1)
     }
   }
 
@@ -47,7 +47,11 @@ object SystemDriver {
 class MysqlUnacknowledgedEventsDao extends InMemoryUnacknowledgedEventsDao
 
 class InMemoryBiGenerator extends BiEventGenerator {
-  var successfulEventsCounter = 0
+  private var successfulEventsCounter = 0
 
   override def generateProvisionEvent(tpaId: UUID, wasSuccessful: Boolean): Unit = if (wasSuccessful) successfulEventsCounter+=1
+
+  def successfulEventsCounterIs(count: Int) = {
+    assert(successfulEventsCounter == count, s"successfulEventsCounter num should be $count but is $successfulEventsCounter")
+  }
 }
