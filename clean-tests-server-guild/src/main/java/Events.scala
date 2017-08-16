@@ -15,11 +15,11 @@ trait UnacknowledgedEventsDao {
 
 class StatefulProvisioningHandler(eventNotifier: EventNotifier, eventsStateDao: UnacknowledgedEventsDao) extends ProvisioningHandler {
   override def handleEventsOf(ids: Set[UUID]): Unit = {
-    eventsStateDao.getEventsWaitingForAck().foreach(id => eventNotifier.notify(TpaProvisionedEvent(id)))
-
     eventsStateDao.addEventsWaitingForAck(ids)
 
-    ids.foreach(id => Try {
+    val idsToNotifyEventsOn = eventsStateDao.getEventsWaitingForAck() ++ ids
+
+    idsToNotifyEventsOn.foreach(id => Try {
       eventNotifier.notify(TpaProvisionedEvent(id))
       eventsStateDao.markAcknowledged(id)
     })
