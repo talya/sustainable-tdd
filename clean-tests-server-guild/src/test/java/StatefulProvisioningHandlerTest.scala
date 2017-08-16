@@ -10,41 +10,41 @@ class StatefulProvisioningHandlerTest extends SpecificationWithJUnit with JMock 
     "notify of provisioned events" in new Context {
       ignoring(unacknowledgedEventsDao)
       checking {
-        oneOf(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId1))
-        oneOf(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId2))
+        oneOf(eventNotifier).notify(TpaProvisionedEvent(tpaId))
+        oneOf(eventNotifier).notify(TpaProvisionedEvent(tpaId2))
       }
 
-      provisioningHandler.handleEventsOf(Set(provisionedTpaId1, provisionedTpaId2))
+      provisioningHandler.handleEventsOf(Set(tpaId, tpaId2))
     }
 
     "save failed events" in new Context {
       checking {
-        allowing(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId1)) willThrow new RuntimeException("no service for you")
-        oneOf(unacknowledgedEventsDao).addEventsWaitingForAck(Set(provisionedTpaId1))
+        allowing(eventNotifier).notify(TpaProvisionedEvent(tpaId)) willThrow new RuntimeException("no service for you")
+        oneOf(unacknowledgedEventsDao).addEventsWaitingForAck(Set(tpaId))
       }
 
-      provisioningHandler.handleEventsOf(Set(provisionedTpaId1))
+      provisioningHandler.handleEventsOf(Set(tpaId))
     }
 
     "mark successfully notified events" in new Context {
       checking {
-        allowing(unacknowledgedEventsDao).addEventsWaitingForAck(Set(provisionedTpaId1))
-        allowing(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId1))
-        oneOf(unacknowledgedEventsDao).markAcknowledged(provisionedTpaId1)
+        allowing(unacknowledgedEventsDao).addEventsWaitingForAck(Set(tpaId))
+        allowing(eventNotifier).notify(TpaProvisionedEvent(tpaId))
+        oneOf(unacknowledgedEventsDao).markAcknowledged(tpaId)
       }
 
-      provisioningHandler.handleEventsOf(Set(provisionedTpaId1))
+      provisioningHandler.handleEventsOf(Set(tpaId))
     }
 
-    "notify of previously failed events before continuing" in new Context {
+    "notify of previously failed events before notifying of the new ones" in new Context {
       val notAckedEventId = UUID.randomUUID()
       checking {
         allowing(unacknowledgedEventsDao).getEventsWaitingForAck() willReturn(Set(notAckedEventId))
         oneOf(eventNotifier).notify(TpaProvisionedEvent(notAckedEventId))
-        oneOf(eventNotifier).notify(TpaProvisionedEvent(provisionedTpaId1))
+        oneOf(eventNotifier).notify(TpaProvisionedEvent(tpaId))
       }
 
-      provisioningHandler.handleEventsOf(Set(provisionedTpaId1))
+      provisioningHandler.handleEventsOf(Set(tpaId))
     }
   }
 
@@ -52,7 +52,7 @@ class StatefulProvisioningHandlerTest extends SpecificationWithJUnit with JMock 
     val eventNotifier = mock[EventNotifier]
     val unacknowledgedEventsDao = mock[UnacknowledgedEventsDao]
     val provisioningHandler = new StatefulProvisioningHandler(eventNotifier, unacknowledgedEventsDao)
-    val provisionedTpaId1 = UUID.randomUUID
-    val provisionedTpaId2 = UUID.randomUUID
+    val tpaId = UUID.randomUUID
+    val tpaId2 = UUID.randomUUID
   }
 }
