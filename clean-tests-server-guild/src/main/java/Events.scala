@@ -8,9 +8,9 @@ trait ProvisioningHandler {
 
 
 trait UnacknowledgedEventsDao {
-  def markAcknowledged(id: UUID): Unit = ???
-  def addEventsWaitingForAck(ids: Set[UUID]): Unit = ???
-  def getEventsWaitingForAck(): Set[UUID] = ???
+  def markAcknowledged(id: UUID): Unit
+  def addEventsWaitingForAck(ids: Set[UUID]): Unit
+  def getEventsWaitingForAck(): Set[UUID]
 }
 
 class StatefulProvisioningHandler(eventNotifier: EventNotifier, eventsStateDao: UnacknowledgedEventsDao) extends ProvisioningHandler {
