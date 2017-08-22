@@ -36,8 +36,11 @@ class E2eTestExample extends SpecificationWithJUnit with Mockito {
 
 object TestEnv extends Mockito {
   val biEventGenerator = new InMemoryBiGenerator
-  val overTheNetworkEventNotifier = mock[EventNotifier] //would be an rpc proxy in an actual e2e
-  val metaSiteTpasCollector = new MetaSiteTpaCollector(new StatefulProvisioningHandler(overTheNetworkEventNotifier, new MysqlUnacknowledgedEventsDao, biEventGenerator))
+  val overTheNetworkEventNotifier = mock[EventNotifier]
+  val tpaTypeProviderFacade = mock[TpaTypeProviderFacade]
+
+  //would be an rpc proxy in an actual e2e
+  val metaSiteTpasCollector = new MetaSiteTpaCollector(new StatefulProvisioningHandler(overTheNetworkEventNotifier, new MysqlUnacknowledgedEventsDao, biEventGenerator, tpaTypeProviderFacade))
 }
 
 object SystemDriver {

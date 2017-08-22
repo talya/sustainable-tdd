@@ -17,7 +17,17 @@ trait UnacknowledgedEventsDao {
   def getEventsWaitingForAck(): Set[UUID]
 }
 
-class StatefulProvisioningHandler(eventNotifier: EventNotifier, eventsStateDao: UnacknowledgedEventsDao, biEventGenerator: BiEventGenerator) extends ProvisioningHandler {
+trait TpaTypeProviderFacade {
+  def tpaIsInteresting(id: UUID): Boolean
+}
+
+trait SecurityAspect
+
+class StatefulProvisioningHandler(eventNotifier: EventNotifier,
+                                  eventsStateDao: UnacknowledgedEventsDao,
+                                  biEventGenerator: BiEventGenerator,
+                                  tpaTypeProviderFacade: TpaTypeProviderFacade) extends ProvisioningHandler {
+
   override def handleEventsOf(ids: Set[UUID]): Unit = {
     eventsStateDao.addEventsWaitingForAck(ids)
 
@@ -25,7 +35,8 @@ class StatefulProvisioningHandler(eventNotifier: EventNotifier, eventsStateDao: 
 
     idsToNotifyEventsOn.foreach {
       id => Try {
-        eventNotifier.notify(TpaProvisionedEvent(id))
+        if (tpaTypeProviderFacade.tpaIsInteresting(id))
+          eventNotifier.notify(TpaProvisionedEvent(id))
         eventsStateDao.markAcknowledged(id)
         biEventGenerator.generateProvisionEvent(id, wasSuccessful = true)
       } recover {
@@ -42,3 +53,4 @@ case class TpaProvisionedEvent(id: UUID)
 trait EventNotifier {
   def notify(tpaProvisionEvent: TpaProvisionedEvent): Unit
 }
+
