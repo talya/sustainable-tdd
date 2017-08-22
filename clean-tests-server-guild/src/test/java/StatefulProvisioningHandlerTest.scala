@@ -77,16 +77,29 @@ class StatefulProvisioningHandlerTest extends SpecificationWithJUnit with JMock 
     val unacknowledgedEventsDao = new InMemoryUnacknowledgedEventsDao
     val biEventGenerator = mock[BiEventGenerator]
     val tpaTypeProviderFacade = mock[TpaTypeProviderFacade]
+    val aspects = mock[RequestAspectStore]
 
-    val provisioningHandler = new StatefulProvisioningHandler(eventNotifier, unacknowledgedEventsDao, biEventGenerator, tpaTypeProviderFacade)
+    val provisioningHandler = new StatefulProvisioningHandler(eventNotifier, unacknowledgedEventsDao, biEventGenerator, tpaTypeProviderFacade, aspects)
     val tpaId = UUID.randomUUID
     val tpaId2 = UUID.randomUUID
+    val wixUserId = UUID.randomUUID()
 
     def givenUnacknowledgedEvent(notAckedEventId: UUID) = {
       unacknowledgedEventsDao.addEventsWaitingForAck(Set(notAckedEventId))
     }
 
     ignoring(biEventGenerator)
+
+    givenWixSession()
+
+    def givenWixSession() = {
+      checking{
+        val wixSession = new WixSession(wixUserId, registrationDate = 0)
+        val securityAspect = mock[SecurityRequestAspect]
+        allowing(securityAspect).getWixSession willReturn(Some(wixSession))
+        allowing(aspects).getAspect(classOf[SecurityRequestAspect]) willReturn(securityAspect)
+      }
+    }
   }
 }
 

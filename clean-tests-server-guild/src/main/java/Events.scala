@@ -1,3 +1,4 @@
+import java.util.Formatter.DateTime
 import java.util.UUID
 
 import scala.util.Try
@@ -7,7 +8,7 @@ trait ProvisioningHandler {
 }
 
 trait BiEventGenerator {
-  def generateProvisionEvent(tpaId: UUID, wasSuccessful: Boolean): Unit
+  def generateProvisionEvent(tpaId: UUID, wasSuccessful: Boolean, user: Option[UUID] = None): Unit
 }
 
 
@@ -21,12 +22,22 @@ trait TpaTypeProviderFacade {
   def tpaIsInteresting(id: UUID): Boolean
 }
 
-trait SecurityAspect
+trait RequestAspectStore {
+  def getAspect[T](clazz: Class[T]): T
+}
+
+trait SecurityRequestAspect {
+  def getWixSession: Option[WixSession]
+}
+
+case class WixSession(userGuid: UUID, registrationDate: Int)
+
 
 class StatefulProvisioningHandler(eventNotifier: EventNotifier,
                                   eventsStateDao: UnacknowledgedEventsDao,
                                   biEventGenerator: BiEventGenerator,
-                                  tpaTypeProviderFacade: TpaTypeProviderFacade) extends ProvisioningHandler {
+                                  tpaTypeProviderFacade: TpaTypeProviderFacade,
+                                  aspects: RequestAspectStore) extends ProvisioningHandler {
 
   override def handleEventsOf(ids: Set[UUID]): Unit = {
     eventsStateDao.addEventsWaitingForAck(ids)
@@ -38,13 +49,15 @@ class StatefulProvisioningHandler(eventNotifier: EventNotifier,
         if (tpaTypeProviderFacade.tpaIsInteresting(id))
           eventNotifier.notify(TpaProvisionedEvent(id))
         eventsStateDao.markAcknowledged(id)
-        biEventGenerator.generateProvisionEvent(id, wasSuccessful = true)
+        biEventGenerator.generateProvisionEvent(id, wasSuccessful = true, user = maybeUserInSession)
       } recover {
         case e =>
-          biEventGenerator.generateProvisionEvent(id, wasSuccessful = false)
+          biEventGenerator.generateProvisionEvent(id, wasSuccessful = false, user = maybeUserInSession)
       }
     }
   }
+
+  private def maybeUserInSession = aspects.getAspect(classOf[SecurityRequestAspect]).getWixSession map {_.userGuid}
 }
 
 

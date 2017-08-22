@@ -39,8 +39,10 @@ object TestEnv extends Mockito {
   val overTheNetworkEventNotifier = mock[EventNotifier]
   val tpaTypeProviderFacade = mock[TpaTypeProviderFacade]
 
+  val aspects = mock[RequestAspectStore]
+
   //would be an rpc proxy in an actual e2e
-  val metaSiteTpasCollector = new MetaSiteTpaCollector(new StatefulProvisioningHandler(overTheNetworkEventNotifier, new MysqlUnacknowledgedEventsDao, biEventGenerator, tpaTypeProviderFacade))
+  val metaSiteTpasCollector = new MetaSiteTpaCollector(new StatefulProvisioningHandler(overTheNetworkEventNotifier, new MysqlUnacknowledgedEventsDao, biEventGenerator, tpaTypeProviderFacade, aspects))
 }
 
 object SystemDriver {
@@ -54,7 +56,7 @@ class InMemoryBiGenerator extends BiEventGenerator {
   private var successfulEventsCounter = 0
   private var failureEventsCounter = 0
 
-  override def generateProvisionEvent(tpaId: UUID, wasSuccessful: Boolean): Unit =
+  override def generateProvisionEvent(tpaId: UUID, wasSuccessful: Boolean, user: Option[UUID]): Unit =
     if (wasSuccessful) successfulEventsCounter += 1
     else failureEventsCounter += 1
 
