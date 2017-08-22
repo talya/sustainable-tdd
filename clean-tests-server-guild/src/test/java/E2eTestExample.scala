@@ -37,7 +37,7 @@ class E2eTestExample extends SpecificationWithJUnit with Mockito {
 object TestEnv extends Mockito {
   val biEventGenerator = new InMemoryBiGenerator
   val tpaTypeProviderFacade = mock[TpaTypeProviderFacade]
-  val overTheNetworkEventNotifier = new SomeImplOfEventNotifier(tpaTypeProviderFacade)
+  val overTheNetworkEventNotifier = new InterestingTpaEventNotifier(tpaTypeProviderFacade)
 
   val aspects = mock[RequestAspectStore]
 

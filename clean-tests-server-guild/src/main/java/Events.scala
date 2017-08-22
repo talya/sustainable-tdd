@@ -1,4 +1,3 @@
-import java.util.Formatter.DateTime
 import java.util.UUID
 
 import scala.util.Try
@@ -65,7 +64,7 @@ trait EventNotifier {
   def notify(tpaProvisionEvent: TpaProvisionedEvent): Unit
 }
 
-class SomeImplOfEventNotifier(tpaTypeProviderFacade: TpaTypeProviderFacade) extends EventNotifier {
+class InterestingTpaEventNotifier(tpaTypeProviderFacade: TpaTypeProviderFacade) extends EventNotifier {
   override def notify(tpaProvisionEvent: TpaProvisionedEvent): Unit =
     if (tpaTypeProviderFacade.tpaIsInteresting(tpaProvisionEvent.id)) actuallyNotify()
 

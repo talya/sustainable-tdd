@@ -10,7 +10,7 @@ class SomeImplOfEventsNotifierTest extends SpecificationWithJUnit with JMock {
     val tpaId2 = UUID.randomUUID
 
     val tpaTypeProviderFacade = mock[TpaTypeProviderFacade]
-    val someImplOfEventNotifier = new SomeImplOfEventNotifier(tpaTypeProviderFacade)
+    val someImplOfEventNotifier = new InterestingTpaEventNotifier(tpaTypeProviderFacade)
 
     checking {
       allowing(tpaTypeProviderFacade).tpaIsInteresting(tpaId) willReturn (true)
