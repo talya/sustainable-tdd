@@ -36,7 +36,6 @@ case class WixSession(userGuid: UUID, registrationDate: Int)
 class StatefulProvisioningHandler(eventNotifier: EventNotifier,
                                   eventsStateDao: UnacknowledgedEventsDao,
                                   biEventGenerator: BiEventGenerator,
-                                  tpaTypeProviderFacade: TpaTypeProviderFacade,
                                   aspects: RequestAspectStore) extends ProvisioningHandler {
 
   override def handleEventsOf(ids: Set[UUID]): Unit = {
@@ -46,8 +45,7 @@ class StatefulProvisioningHandler(eventNotifier: EventNotifier,
 
     idsToNotifyEventsOn.foreach {
       id => Try {
-        if (tpaTypeProviderFacade.tpaIsInteresting(id))
-          eventNotifier.notify(TpaProvisionedEvent(id))
+        eventNotifier.notify(TpaProvisionedEvent(id))
         eventsStateDao.markAcknowledged(id)
         biEventGenerator.generateProvisionEvent(id, wasSuccessful = true, user = maybeUserInSession)
       } recover {
@@ -65,5 +63,12 @@ case class TpaProvisionedEvent(id: UUID)
 
 trait EventNotifier {
   def notify(tpaProvisionEvent: TpaProvisionedEvent): Unit
+}
+
+class SomeImplOfEventNotifier(tpaTypeProviderFacade: TpaTypeProviderFacade) extends EventNotifier {
+  override def notify(tpaProvisionEvent: TpaProvisionedEvent): Unit =
+    if (tpaTypeProviderFacade.tpaIsInteresting(tpaProvisionEvent.id)) actuallyNotify()
+
+  private def actuallyNotify():Unit = {}
 }
 
