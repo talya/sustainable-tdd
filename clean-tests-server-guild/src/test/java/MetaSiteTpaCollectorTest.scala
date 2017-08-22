@@ -1,6 +1,7 @@
 import java.util.UUID
 
 import com.wixpress.common.specs2.JMock
+import core.{MetaSiteTpaCollector, ProvisioningHandler, TpaInstance}
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
 

@@ -1,10 +1,12 @@
 import java.util.UUID
 
-import TpaInstance.PROVISIONED
+import core.TpaInstance.PROVISIONED
 import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
 import EventCount._
+import core._
+import fw.{FwBasedUserIdRetriever, RequestAspectStore}
 
 class E2eTestExample extends SpecificationWithJUnit with Mockito {
 
@@ -40,9 +42,10 @@ object TestEnv extends Mockito {
   val overTheNetworkEventNotifier = new InterestingTpaEventNotifier(tpaTypeProviderFacade)
 
   val aspects = mock[RequestAspectStore]
+  val userIdRetriever = new FwBasedUserIdRetriever(aspects)
 
   //would be an rpc proxy in an actual e2e
-  val metaSiteTpasCollector = new MetaSiteTpaCollector(new StatefulProvisioningHandler(overTheNetworkEventNotifier, new MysqlUnacknowledgedEventsDao, biEventGenerator, aspects))
+  val metaSiteTpasCollector = new MetaSiteTpaCollector(new StatefulProvisioningHandler(overTheNetworkEventNotifier, new MysqlUnacknowledgedEventsDao, biEventGenerator, userIdRetriever))
 
 }
 

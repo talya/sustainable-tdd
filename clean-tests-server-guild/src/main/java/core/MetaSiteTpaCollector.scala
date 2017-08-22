@@ -1,3 +1,5 @@
+package core
+
 import java.util.UUID
 
 class MetaSiteTpaCollector(provisioningHandler: ProvisioningHandler) {

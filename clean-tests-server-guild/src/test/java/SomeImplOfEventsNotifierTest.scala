@@ -1,6 +1,7 @@
 import java.util.UUID
 
 import com.wixpress.common.specs2.JMock
+import core.{InterestingTpaEventNotifier, TpaProvisionedEvent, TpaTypeProviderFacade}
 import org.specs2.mutable.SpecificationWithJUnit
 
 class SomeImplOfEventsNotifierTest extends SpecificationWithJUnit with JMock {

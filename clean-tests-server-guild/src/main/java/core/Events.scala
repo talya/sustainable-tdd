@@ -1,3 +1,5 @@
+package core
+
 import java.util.UUID
 
 import scala.util.Try
@@ -21,21 +23,15 @@ trait TpaTypeProviderFacade {
   def tpaIsInteresting(id: UUID): Boolean
 }
 
-trait RequestAspectStore {
-  def getAspect[T](clazz: Class[T]): T
+
+trait UserIdRetriever {
+  def maybeUserInSession: Option[UUID]
 }
-
-trait SecurityRequestAspect {
-  def getWixSession: Option[WixSession]
-}
-
-case class WixSession(userGuid: UUID, registrationDate: Int)
-
 
 class StatefulProvisioningHandler(eventNotifier: EventNotifier,
                                   eventsStateDao: UnacknowledgedEventsDao,
                                   biEventGenerator: BiEventGenerator,
-                                  aspects: RequestAspectStore) extends ProvisioningHandler {
+                                  userIdRetriever: UserIdRetriever) extends ProvisioningHandler {
 
   override def handleEventsOf(ids: Set[UUID]): Unit = {
     eventsStateDao.addEventsWaitingForAck(ids)
@@ -46,15 +42,13 @@ class StatefulProvisioningHandler(eventNotifier: EventNotifier,
       id => Try {
         eventNotifier.notify(TpaProvisionedEvent(id))
         eventsStateDao.markAcknowledged(id)
-        biEventGenerator.generateProvisionEvent(id, wasSuccessful = true, user = maybeUserInSession)
+        biEventGenerator.generateProvisionEvent(id, wasSuccessful = true, user = userIdRetriever.maybeUserInSession)
       } recover {
         case e =>
-          biEventGenerator.generateProvisionEvent(id, wasSuccessful = false, user = maybeUserInSession)
+          biEventGenerator.generateProvisionEvent(id, wasSuccessful = false, user = userIdRetriever.maybeUserInSession)
       }
     }
   }
-
-  private def maybeUserInSession = aspects.getAspect(classOf[SecurityRequestAspect]).getWixSession map {_.userGuid}
 }
 
 

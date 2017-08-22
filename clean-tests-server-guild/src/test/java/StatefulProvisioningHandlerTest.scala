@@ -1,6 +1,7 @@
 import java.util.UUID
 
 import com.wixpress.common.specs2.JMock
+import core.{UserIdRetriever, _}
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
 
@@ -57,9 +58,9 @@ class StatefulProvisioningHandlerTest extends SpecificationWithJUnit with JMock 
     val eventNotifier = mock[EventNotifier]
     val unacknowledgedEventsDao = new InMemoryUnacknowledgedEventsDao
     val biEventGenerator = mock[BiEventGenerator]
-    val aspects = mock[RequestAspectStore]
+    val userIdRetriever = mock[UserIdRetriever]
 
-    val provisioningHandler = new StatefulProvisioningHandler(eventNotifier, unacknowledgedEventsDao, biEventGenerator, aspects)
+    val provisioningHandler = new StatefulProvisioningHandler(eventNotifier, unacknowledgedEventsDao, biEventGenerator, userIdRetriever)
     val tpaId = UUID.randomUUID
     val tpaId2 = UUID.randomUUID
     val wixUserId = UUID.randomUUID()
@@ -74,10 +75,7 @@ class StatefulProvisioningHandlerTest extends SpecificationWithJUnit with JMock 
 
     def givenWixSession() = {
       checking{
-        val wixSession = new WixSession(wixUserId, registrationDate = 0)
-        val securityAspect = mock[SecurityRequestAspect]
-        allowing(securityAspect).getWixSession willReturn(Some(wixSession))
-        allowing(aspects).getAspect(classOf[SecurityRequestAspect]) willReturn(securityAspect)
+        allowing(userIdRetriever).maybeUserInSession willReturn(Some(wixUserId))
       }
     }
   }
